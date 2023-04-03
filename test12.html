@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw" xml:lang="zh-tw">
+  <head>
+    <title>点光源 | CSGrandeur的WebGL学习笔记</title>
+    <meta content="" name="description"/>
+    <meta content="GitBook 2.4.3" name="generator"/>
+    <meta content="CSGrandeur" name="author"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+        
+        
+<div class="page">
+    <h1 class="book-chapter" id="calibre_toc_14">点光源</h1>
+    
+        <div id="section-" class="normal">
+        
+            <h2 id="%E7%82%B9%E5%85%89%E6%BA%90" class="calibre14">点光源</h2>
+<p class="calibre9">效果如图15。</p>
+<blockquote class="calibre17">
+<p class="calibre9"><img alt="图15" src="1_015.gif" class="calibre16"/></p>
+<p class="calibre18">图15</p>
+</blockquote>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-keyword">var</span> textureFlag = [<span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>];
+<span class="hljs-keyword">var</span> startTick = <span class="hljs-built_in">false</span>;
+<span class="hljs-keyword">var</span> waitTick;
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">webGLStart</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-title">//...</span>
+    waitTexture = setInterval(<span class="hljs-value">"tick()"</span>, <span class="hljs-built_in">100</span>);
+}
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">tick</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">if</span>(textureFlag[<span class="hljs-built_in">0</span>] == <span class="hljs-built_in">1</span> &amp;&amp; textureFlag[<span class="hljs-built_in">1</span>] == <span class="hljs-built_in">1</span>)
+    {
+        startTick = <span class="hljs-built_in">true</span>;
+        textureFlag[<span class="hljs-built_in">0</span>] = <span class="hljs-built_in">2</span>;
+        textureFlag[<span class="hljs-built_in">1</span>] = <span class="hljs-built_in">2</span>;
+        clearInterval(waitTexture);
+    }
+    <span class="hljs-keyword">if</span>(startTick)
+    {
+        requestAnimFrame(tick);
+        drawScene();
+        animate();
+    }
+}
+</code></pre>
+<p class="calibre9">这次让板条箱和月亮围着一个中心点旋转，需要加载两个纹理，加载速度慢的话那个关于texture的WARNING就又回来了。为了确保纹理加载完之后再tick()，增加了三个标记和一个定时器。代码逻辑还好理解，用setInterval轮询纹理是否加载完毕而不用while，是因为while执行太快了，会卡的，100ms询问一次就可以了。textureFlag在分别在两个纹理加载完成的时候变为true。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-keyword">var</span> lastTime = <span class="hljs-built_in">0</span>;
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">animate</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">var</span> timeNow = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
+    <span class="hljs-keyword">if</span>(lastTime != <span class="hljs-built_in">0</span>)
+    {
+        <span class="hljs-keyword">var</span> elapsed = timeNow - lastTime;
+
+         moonAngle += <span class="hljs-built_in">0.05</span> * elapsed;
+         cubeAngle += <span class="hljs-built_in">0.05</span> * elapsed;
+    }
+    lastTime = timeNow;
+}
+</code></pre>
+<p class="calibre9">要让它们旋转，animate自然要放回来的。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">drawScene</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-title">//...</span>
+    <span class="hljs-keyword">var</span> lighting = $(<span class="hljs-value">"#lighting"</span>).is(<span class="hljs-value">":checked"</span>);
+    gl.uniform1i(shaderProgram.useLightingUniform, lighting);
+    <span class="hljs-keyword">if</span>(lighting)
+    {
+        gl.uniform3f(
+            shaderProgram.ambientColorUniform,
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#ambientR"</span>).val()),
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#ambientG"</span>).val()),
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#ambientB"</span>).val())
+            );
+        gl.uniform3f(
+            shaderProgram.pointLightingLocationUniform,
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#lightPositionX"</span>).val()),
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#lightPositionY"</span>).val()),
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#lightPositionZ"</span>).val())
+        );
+
+        gl.uniform3f(
+            shaderProgram.pointLightingColorUniform,
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#pointR"</span>).val()),
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#pointG"</span>).val()),
+            <span class="hljs-built_in">parseFloat</span>($(<span class="hljs-value">"#pointB"</span>).val())
+        );
+
+    }
+</code></pre>
+<p class="calibre9">点光源的参数还是和之前类似方法用uniform给出。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">
+    mat4.identity(mvMatrix);
+    mat4.translate(mvMatrix, mvMatrix, [<span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>, -<span class="hljs-built_in">20</span>]);
+
+    mvPushMatrix();
+
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(moonAngle), [<span class="hljs-built_in">0</span>, <span class="hljs-built_in">1</span>, <span class="hljs-built_in">0</span>]);
+    mat4.translate(mvMatrix, mvMatrix, [<span class="hljs-built_in">5</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>]);
+
+    <span class="hljs-title">//...绘制月亮，和之前绘制月亮一样。</span>
+
+    mvPopMatrix();
+
+    mvPushMatrix();
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(cubeAngle), [<span class="hljs-built_in">0</span>, <span class="hljs-built_in">1</span>, <span class="hljs-built_in">0</span>]);
+    mat4.translate(mvMatrix, mvMatrix, [<span class="hljs-built_in">5</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>]);
+
+    <span class="hljs-title">//...绘制板条箱，和前面绘制板条箱一样。</span>
+}
+</code></pre>
+<p class="calibre9">利用mvPopMatrix()和mvPushMatrix()，就把月亮的绘制和板条箱的绘制独立开来，都从原点平移相同距离，再旋转不同角度。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">id</span> = "<span class="hljs-tag">shader-vs</span>" <span class="hljs-tag">type</span> = "<span class="hljs-tag">x-shader</span>/<span class="hljs-tag">x-vertex</span>"&gt;</span><span class="undefined">
+    <span class="hljs-title">//...</span>
+    uniform vec3 uPointLightingLocation;
+    uniform vec3 uPointLightingColor;
+
+    <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">void</span>)
+    {
+        vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, <span class="hljs-built_in">1.0</span>);
+        gl_Position = uPMatrix * mvPosition;
+        vTextureCoord = aTextureCoord;
+        <span class="hljs-keyword">if</span> (!uUseLighting)
+        {
+            vLightWeighting = vec3(<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>);
+        }
+        <span class="hljs-keyword">else</span>
+        {
+            vec3 lightDirection =
+                normalize(uPointLightingLocation - mvPosition.xyz);
+            vec3 transformedNormal = uNMatrix * aVertexNormal;
+            float directionalLightWeighting =
+                max(dot(transformedNormal, lightDirection), <span class="hljs-built_in">0.0</span>);
+            vLightWeighting =
+                uAmbientColor + uPointLightingColor * directionalLightWeighting;
+        }
+    }
+</span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+<p class="calibre9">点光源照来的光，与相同方向照来的平行光是没有两样的，利用当前计算的点移动到的位置mvPosition，和点光源的位置uPointLightingLocation，就算出了点光源照到该点的方向，而这个方向向量就可以和前面章节计算方向光效果一样方法使用了。于是在计算gl_Position的时候，与之前不同地分了两步，先计算了mvPosition。</p>
+<p class="calibre9">好了，我们有了点光源。</p>
+
+        
+        </div>
+    
+</div>
+
+        
+        
+    
+    
+
+</body></html>

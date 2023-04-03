@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw" xml:lang="zh-tw">
+  <head>
+    <title>镜面高光 | CSGrandeur的WebGL学习笔记</title>
+    <meta content="" name="description"/>
+    <meta content="GitBook 2.4.3" name="generator"/>
+    <meta content="CSGrandeur" name="author"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+        
+        
+<div class="page">
+    <h1 class="book-chapter" id="calibre_toc_16">镜面高光</h1>
+    
+        <div id="section-" class="normal">
+        
+            <h2 id="%E9%95%9C%E9%9D%A2%E9%AB%98%E5%85%89" class="calibre14">镜面高光</h2>
+<p class="calibre9">效果如图19。</p>
+<blockquote class="calibre17">
+<p class="calibre9"><img alt="图19" src="1_019.gif" class="calibre16"/></p>
+<p class="calibre18">图19</p>
+</blockquote>
+<p class="calibre9">计算高光我们用逐片元计算，顶点shader不用修改，在片元shader中计算镜面高光。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">id</span> = "<span class="hljs-tag">per-fragment-lighting-fs</span>" <span class="hljs-tag">type</span> = "<span class="hljs-tag">x-shader</span>/<span class="hljs-tag">x-fragment</span>"&gt;</span><span class="undefined">
+    <span class="hljs-title">//...</span>
+    uniform float uMaterialShininess;
+    uniform bool uShowSpecularHighlights;
+
+    uniform vec3 uPointLightingLocation;
+    uniform vec3 uPointLightingSpecularColor;
+    uniform vec3 uPointLightingDiffuseColor;
+
+    uniform sampler2D uSampler;
+
+    <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">void</span>)
+    {
+        vec3 lightWeighting;
+        <span class="hljs-keyword">if</span> (!uUseLighting)
+        {
+            lightWeighting = vec3(<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>);
+        }
+        <span class="hljs-keyword">else</span>
+        {
+            vec3 lightDirection =
+                normalize(uPointLightingLocation - vPosition.xyz);
+            vec3 normal = normalize(vTransformedNormal);
+
+            float specularLightWeighting = <span class="hljs-built_in">0.0</span>;
+
+            <span class="hljs-keyword">if</span>(uShowSpecularHighlights)
+            {
+</span></code></pre>
+<p class="calibre9">这里我们保留了在片元shader前已插值的法向量并归一化，作为中间变量。</p>
+<p class="calibre9">高光开关如果是关闭的话增益为0 。</p>
+<p class="calibre9">计算镜面反射亮度的方程为：</p>
+<blockquote class="calibre17">
+<p class="calibre18">(R<sub class="calibre19">m</sub> * V)<sup class="calibre20">α</sup></p>
+</blockquote>
+<p class="calibre9">R<sub class="calibre19">m</sub>是光线在该点镜面反射后的归一化方向向量，V是眼（相机）到该点的归一化方向向量，α描述光洁度，α越大则越光亮，相当于材质的反光特征。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">                vec3 eyeDirection = normalize(-vPosition.xyz);
+</code></pre>
+<p class="calibre9">我们的相机一直在原点，所以这个向量很好算。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">                vec3 reflectionDirection = reflect(-lightDirection, normal);
+</code></pre>
+<p class="calibre9">GLSL提供了计算反射向量的函数reflect，lightDirection加负号是因为为了方便计算漫反射颜色，我们前面计算的lightDirection变量方向和光线是相反的。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">                specularLightWeighting =
+                    pow(max(dot(reflectionDirection, eyeDirection), 0.0),
+                    uMaterialShininess);
+            }
+</code></pre>
+<p class="calibre9">用公式计算镜面反射增益。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">            float diffuseLightWeighting = max(dot(normal, lightDirection), 0.0);
+            lightWeighting = uAmbientColor +
+                uPointLightingSpecularColor * specularLightWeighting +
+                uPointLightingDiffuseColor * diffuseLightWeighting;
+        }
+
+        ////vec4 fragmentColor;
+        //...
+        gl_FragColor = vec4(fragmentColor.rgb * lightWeighting, fragmentColor.a);
+    }
+<span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+<p class="calibre9">最后计算总颜色增益还是把它们加起来。</p>
+<p class="calibre9">前面我们加载过json数据，这一节一样方式加载茶壶的数据，具体参考完整代码。</p>
+
+        
+        </div>
+    
+</div>
+
+        
+        
+    
+    
+
+</body></html>

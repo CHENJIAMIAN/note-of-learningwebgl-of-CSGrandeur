@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw" xml:lang="zh-tw">
+  <head>
+    <title>来点真正的3D | CSGrandeur的WebGL学习笔记</title>
+    <meta content="" name="description"/>
+    <meta content="GitBook 2.4.3" name="generator"/>
+    <meta content="CSGrandeur" name="author"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+        
+        
+<div class="page">
+    <h1 class="book-chapter" id="calibre_toc_6">来点真正的3D</h1>
+    
+        <div id="section-" class="normal">
+        
+            <h2 id="%E6%9D%A5%E7%82%B9%E7%9C%9F%E6%AD%A3%E7%9A%843d" class="calibre14">来点真正的3D</h2>
+<p class="calibre9">这节我们把三角改成四棱椎，矩形改成正方体。</p>
+<p class="calibre9">效果如图4。</p>
+<blockquote class="calibre17">
+<p class="calibre9"><img alt="图4" src="1_004.gif" class="calibre16"/></p>
+<p class="calibre18">图4</p>
+</blockquote>
+<p class="calibre9">之前几节的图形是一个面，而立体的图形是由多个面组成的，我们一个面一个面地给出顶点坐标，画上去就得到了三维图形。</p>
+<p class="calibre9">在绘制正方体的时候，我们增加一个索引。原因是：</p>
+<ol class="calibre2">
+<li class="calibre3">相邻的面是有公共点的，如果所有面都各自用坐标表示，就多了许多重复工作，这时我们增加一个索引（index），只需给出所有点的坐标，就可以用索引来重复使用点。</li>
+<li class="calibre3">如果我们用“POLYGON”画面，程序不清楚我们每个面有几条边，就要用for循环去一个面一个面画。如果用“TRIANGLE_STRIP”来画，则这个面画完，可能会和另一个面的顶点组成一个我们并不想画的三角形。如果用“TRIANGLES”来画，一个面四个点，等于两个三角形，两个公共点的坐标我们就需要多提供一次。使用索引+“TRIANGLES”，就方便多了。</li>
+</ol>
+<p class="calibre9">为了让变量名更有意义一些，我们先把三角和矩形对应的变量名改成四面体和立方体。比如rTri改为rPyramid，triangleVertexPositionBuffer改成pyramidVertexPositionBuffer等等。</p>
+<p class="calibre9">四面体用老方法来画，正方体用点索引的方法（具体方法是随意的，看怎么方便了）。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-keyword">var</span> cubeVertexIndexBuffer;
+</code></pre>
+<p class="calibre9">增加全局变量，正方体顶点索引的buffer。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initBuffers</span>(<span class="hljs-built_in"></span>)
+</span>{
+    pyramidVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pyramidVertexPositionBuffer);
+    <span class="hljs-keyword">var</span> vertices = [
+                    <span class="hljs-title">// 正面</span>
+                     <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>,
+                    -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                     <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                    <span class="hljs-title">// 右侧面</span>
+                     <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>,
+                     <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                     <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                    <span class="hljs-title">// 背面</span>
+                     <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>,
+                     <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                    -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                    <span class="hljs-title">// 左侧面</span>
+                     <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>,
+                    -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                    -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>
+                    ];
+    gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(vertices),
+        gl.STATIC_DRAW);
+    pyramidVertexPositionBuffer.itemSize = <span class="hljs-built_in">3</span>;
+    pyramidVertexPositionBuffer.numItems = <span class="hljs-built_in">12</span>;
+
+    pyramidVertexColorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pyramidVertexColorBuffer);
+    <span class="hljs-keyword">var</span> colors = [
+                 <span class="hljs-title">// 正面</span>
+                 <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-title">// 右侧面</span>
+                 <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-title">// 背面</span>
+                 <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-title">// 左侧面</span>
+                 <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>
+                ];
+     gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(colors),
+         gl.STATIC_DRAW);
+     pyramidVertexColorBuffer.itemSize = <span class="hljs-built_in">4</span>;
+     pyramidVertexColorBuffer.numItems = <span class="hljs-built_in">12</span>;
+</code></pre>
+<p class="calibre9">对四面体，给出了三维世界中每个面的顶点坐标，相应的numItems也自然和三角的不一样了。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">    cubeVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+    vertices = [
+                <span class="hljs-title">// 正面</span>
+                -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+
+                <span class="hljs-title">// 背面</span>
+                -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+
+                <span class="hljs-title">// 顶部</span>
+                -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+
+                <span class="hljs-title">// 底部</span>
+                -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+
+                <span class="hljs-title">// 右侧面</span>
+                 <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                 <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+
+                <span class="hljs-title">// 左侧面</span>
+                -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,
+                -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,
+                ];
+    gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(vertices),
+        gl.STATIC_DRAW);
+    cubeVertexPositionBuffer.itemSize = <span class="hljs-built_in">3</span>;
+    cubeVertexPositionBuffer.numItems = <span class="hljs-built_in">24</span>;
+
+    cubeVertexColorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+    colors = [
+              [<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>],     <span class="hljs-title">// 正面</span>
+              [<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>],     <span class="hljs-title">// 背面</span>
+              [<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>],     <span class="hljs-title">// 顶部</span>
+              [<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.5</span>, <span class="hljs-built_in">0.5</span>, <span class="hljs-built_in">1.0</span>],     <span class="hljs-title">// 底部</span>
+              [<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>],     <span class="hljs-title">// 右侧面</span>
+              [<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>]     <span class="hljs-title">// 左侧面</span>
+            ];
+    <span class="hljs-keyword">var</span> unpackedColors = [];
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> colors)
+    {
+        <span class="hljs-keyword">var</span> color = colors[i];
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j=<span class="hljs-built_in">0</span>; j &lt; <span class="hljs-built_in">4</span>; j++)
+        {
+            unpackedColors = unpackedColors.concat(color);
+        }
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(unpackedColors),
+        gl.STATIC_DRAW);
+    cubeVertexColorBuffer.itemSize = <span class="hljs-built_in">4</span>;
+    cubeVertexColorBuffer.numItems = <span class="hljs-built_in">24</span>;
+</code></pre>
+<p class="calibre9">代码还是把中正方体每个面的顶点分别给出了，以便给不同的面设置不同颜色，因为一个点有三个相邻面，我们无法给一个点设置三种颜色，但是可以在同一个位置放三个不同颜色的点。</p>
+<p class="calibre9">颜色按顶点的顺序对应给出，这个for循环代码的逻辑，思考一下应该会明白。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">    cubeVertexIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+    <span class="hljs-keyword">var</span> cubeVertexIndices = 
+        [
+          <span class="hljs-built_in">0</span>, <span class="hljs-built_in">1</span>, <span class="hljs-built_in">2</span>,      <span class="hljs-built_in">0</span>, <span class="hljs-built_in">2</span>, <span class="hljs-built_in">3</span>,    <span class="hljs-title">// 正面</span>
+          <span class="hljs-built_in">4</span>, <span class="hljs-built_in">5</span>, <span class="hljs-built_in">6</span>,      <span class="hljs-built_in">4</span>, <span class="hljs-built_in">6</span>, <span class="hljs-built_in">7</span>,    <span class="hljs-title">// 背面</span>
+          <span class="hljs-built_in">8</span>, <span class="hljs-built_in">9</span>, <span class="hljs-built_in">10</span>,     <span class="hljs-built_in">8</span>, <span class="hljs-built_in">10</span>, <span class="hljs-built_in">11</span>,  <span class="hljs-title">// 顶部</span>
+          <span class="hljs-built_in">12</span>, <span class="hljs-built_in">13</span>, <span class="hljs-built_in">14</span>,   <span class="hljs-built_in">12</span>, <span class="hljs-built_in">14</span>, <span class="hljs-built_in">15</span>, <span class="hljs-title">// 底部</span>
+          <span class="hljs-built_in">16</span>, <span class="hljs-built_in">17</span>, <span class="hljs-built_in">18</span>,   <span class="hljs-built_in">16</span>, <span class="hljs-built_in">18</span>, <span class="hljs-built_in">19</span>, <span class="hljs-title">// 右侧面</span>
+          <span class="hljs-built_in">20</span>, <span class="hljs-built_in">21</span>, <span class="hljs-built_in">22</span>,   <span class="hljs-built_in">20</span>, <span class="hljs-built_in">22</span>, <span class="hljs-built_in">23</span>  <span class="hljs-title">// 左侧面</span>
+        ];
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 
+        <span class="hljs-keyword">new</span> <span class="hljs-built_in">Uint16Array</span>(cubeVertexIndices), gl.STATIC_DRAW);
+    cubeVertexIndexBuffer.itemSize = <span class="hljs-built_in">1</span>;
+    cubeVertexIndexBuffer.numItems = <span class="hljs-built_in">36</span>;
+}
+</code></pre>
+<p class="calibre9">索引的设置方法与前面的顶点、颜色类似，只是相应改变了一些参数，如gl.ELEMENT_ARRAY_BUFFER、Uint16Array等。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">drawScene</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-title">//...</span>
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+    setMatrixUniforms();
+    gl.drawElements(gl.TRIANGLES,
+        cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, <span class="hljs-built_in">0</span>);
+    <span class="hljs-title">////mvPopMatrix();</span>
+}
+</code></pre>
+<p class="calibre9">绘制的时候，四面体依然使用gl.drawArrays()直接顶点数组画。对正方体使用索引来绘制，函数相应改为gl.drawElements()，当然执行绘制函数之前绑定的buffer也要对应IndexBuffer。</p>
+<p class="calibre9">这样我们就得到了两个立体的旋转着的图形。</p>
+
+        
+        </div>
+    
+</div>
+
+        
+        
+    
+    
+
+</body></html>

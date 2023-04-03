@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw" xml:lang="zh-tw">
+  <head>
+    <title>添加颜色 | CSGrandeur的WebGL学习笔记</title>
+    <meta content="" name="description"/>
+    <meta content="GitBook 2.4.3" name="generator"/>
+    <meta content="CSGrandeur" name="author"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+        
+        
+<div class="page">
+    <h1 class="book-chapter" id="calibre_toc_4">添加颜色</h1>
+    
+        <div id="section-" class="normal">
+        
+            <h2 id="%E6%B7%BB%E5%8A%A0%E9%A2%9C%E8%89%B2" class="calibre14">添加颜色</h2>
+<p class="calibre9">本节在上节基础上添加颜色，效果如图2。</p>
+<blockquote class="calibre17">
+<p class="calibre9"><img alt="图2" src="1_002.png" class="calibre16"/></p>
+<p class="calibre18">图2</p>
+</blockquote>
+<p class="calibre9">在着色器中添加与颜色有关的代码，并对应修改相关函数与着色器变量的关系。</p>
+<p class="calibre9">首先是顶点着色器。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">&lt;script id = <span class="hljs-value">"shader-vs"</span> type = <span class="hljs-value">"x-shader/x-vertex"</span>&gt;
+    attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
+</code></pre>
+<p class="calibre9">attribute变量对应三维模型里每个顶点的属性，shader是一个顶点一个顶点操作的。这两个属性的值我们在initBuffer里给出。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+</code></pre>
+<p class="calibre9">uniform在挨个处理顶点的过程中是不变的，这里就是模型-视图矩阵与投影矩阵在一次流水线显然要中保持恒定。不然这个点左移，那个点右移，就改变形状了，这不是顶点着色器该有的含义。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">    varying vec4 vColor;
+    void main(void)
+    {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
+    }
+&lt;/script&gt;
+</code></pre>
+<p class="calibre9">显卡绘制需要考虑每个显示的点的颜色，而模型的顶点与顶点之间还有许多会在屏幕上显示的却并没有属性的点，通过vColor把顶点属性的颜色传入，将获得线性插值的颜色映射。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">&lt;script id = "shader-fs" type = "x-shader/x-fragment"&gt;
+    precision mediump float;
+
+    varying vec4 vColor;
+
+    void main(void)
+    {
+        gl_FragColor = vColor;
+    }
+&lt;/script&gt;
+</code></pre>
+<p class="calibre9">片元着色器直接把插值后的颜色给片元，这里就是一个显示的像素。</p>
+<p class="calibre9">然后我们在initShaders()中增加aVertexColor的对应内容。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3">    shaderProgram.vertexColorAttribute = 
+        gl.getAttribLocation(shaderProgram, <span class="hljs-value">"aVertexColor"</span>);
+    gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+</code></pre>
+<p class="calibre9">在initBuffers()中添加颜色数据。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-keyword">var</span> triangleVertexColorBuffer;
+<span class="hljs-keyword">var</span> squareVertexColorBuffer;
+</code></pre>
+<p class="calibre9">先增加全局变量。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initBuffers</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-title">//...</span>
+    triangleVertexColorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
+    <span class="hljs-keyword">var</span> colors = [
+                  <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                  <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+                  <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>
+                  ];
+      gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(colors), gl.STATIC_DRAW);
+      triangleVertexColorBuffer.itemSize = <span class="hljs-built_in">4</span>;
+      triangleVertexColorBuffer.numItems = <span class="hljs-built_in">3</span>;
+    <span class="hljs-title">//...</span>
+    squareVertexColorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
+    colors = []
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i=<span class="hljs-built_in">0</span>; i &lt; <span class="hljs-built_in">4</span>; i++) {
+      colors = colors.concat([<span class="hljs-built_in">0.5</span>, <span class="hljs-built_in">0.5</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>]);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(colors), gl.STATIC_DRAW);
+    squareVertexColorBuffer.itemSize = <span class="hljs-built_in">4</span>;
+    squareVertexColorBuffer.numItems = <span class="hljs-built_in">4</span>;
+}
+</code></pre>
+<p class="calibre9">写法和triangleVertexPositionBuffer、squareVertexPositionBuffer是一样的，它们都是顶点的属性。</p>
+<p class="calibre9">最后在drawScene()中增加对应颜色的代码。</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">drawScene</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-title">//...</span>
+    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
+        triangleVertexColorBuffer.itemSize, gl.FLOAT, <span class="hljs-built_in">false</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>);
+    <span class="hljs-title">//...</span>
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
+        squareVertexColorBuffer.itemSize, gl.FLOAT, <span class="hljs-built_in">false</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>);
+    <span class="hljs-title">//...</span>
+}
+</code></pre>
+<p class="calibre9">也和坐标buffer类似。</p>
+<p class="calibre9">完整代码见附录1。</p>
+
+        
+        </div>
+    
+</div>
+
+        
+        
+    
+    
+
+</body></html>

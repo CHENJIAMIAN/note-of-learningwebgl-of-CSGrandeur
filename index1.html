@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw" xml:lang="zh-tw">
+  <head>
+    <title>起步 | CSGrandeur的WebGL学习笔记</title>
+    <meta content="" name="description"/>
+    <meta content="GitBook 2.4.3" name="generator"/>
+    <meta content="CSGrandeur" name="author"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+        
+        
+<div class="page">
+    <h1 class="book-chapter" id="calibre_toc_2">起步</h1>
+    
+        <div id="section-" class="normal">
+        
+            <h1 id="%E7%AC%AC%E4%B8%80%E7%AB%A0-%E8%B5%B7%E6%AD%A5" class="calibre1">第一章 起步</h1>
+<p class="calibre9">本章从一个能够运行的WebGL基础代码开始</p>
+<p class="calibre9">我们不考虑HTML的结构，比如header了body了什么的，只关注WebGL相关代码，而且这样的代码是可以用的~~</p>
+<p class="calibre9">当然为了更好的体验，可以网上找个HTML页面代码，再加上些css文件弄美观些，然后把WebGL代码写在<span class="calibre13">&lt;body&gt;&lt;/body&gt;</span>里。</p>
+<h2 id="-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C" class="calibre14"><strong class="calibre7">准备工作</strong></h2>
+<h3 id="%E6%B5%8F%E8%A7%88%E5%99%A8" class="calibre8">浏览器</h3>
+<p class="calibre9">比较新的浏览器基本没什么问题，一般决定学习WebGL的同学多少有点极客精神，不至于用太老旧的浏览器吧。</p>
+<p class="calibre9">目前来说Chrome一般是开发者的首选，如果你用的不是Chrome浏览器，随便上网搜一些WebGL的例子打开看自己的浏览器能不能正常显示应该也差不多。</p>
+<p class="calibre9">如果我什么时候弄了个服务器，就把每一节的练习源码放上去，到时候会把链接放在这里，到时也可以用这些页面测试浏览器是否支持。</p>
+<p class="calibre9">所以，先准备一个最新的浏览器吧。</p>
+<h3 id="%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83" class="calibre8">开发环境</h3>
+<p class="calibre9">Web一般是用浏览器来看，所以用不到什么编译器，那么像UltraEdit、Sublime，或者不怎么极客的我没用过的Vim和Emacs口碑这么好应该也可以。</p>
+<p class="calibre9">之前做项目已经习惯了Eclipse，可以装各种扩展，语法高亮、代码提示什么的都不错，就是配置到很顺手还是要花点功夫的。</p>
+<p class="calibre9">建议做个本地服务器，毕竟WebGL是在Web上的，有个服务器调试代码能有更好的Web体验。我就用<a target="_blank" href="https://www.apachefriends.org" class="calibre4 pcalibre1 pcalibre pcalibre2">XAMPP</a>了，装上之后根目录的htdocs里放自己的Web页面，就可以在浏览器用127.0.0.1访问了。当然也可以修改它的apache配置文件满足自己的其他需要，不再赘述。</p>
+<h3 id="%E5%A6%82%E4%BD%95%E8%B0%83%E8%AF%95" class="calibre8">如何调试</h3>
+<p class="calibre9">前端程序员应该很熟悉，大多浏览器用F12可打开调试器，在Console里查看页面错误。</p>
+<p class="calibre9">可以利用调试器点选网页元素，看元素的代码位置、内容和相关的css，帮助解决一些基本的前端问题。
+太高深的我也不懂，就不多说了。了解一些前端知识总是有好处的。</p>
+<h3 id="%E4%BD%BF%E7%94%A8%E7%9A%84%E5%A4%96%E9%83%A8%E5%BA%93" class="calibre8">使用的外部库</h3>
+<h4 id="jquery" class="calibre15">jQuery</h4>
+<p class="calibre9">jQuery是一个家喻户晓的JS库，大家一般不太喜欢直面JS原生代码，使用jQuery会方便很多。大家都在用，不用担心冷门什么的，而且也不会影响对WebGL知识的学习。</p>
+<p class="calibre9">jQuery官网：<a target="_blank" href="http://jquery.com/" class="calibre4 pcalibre1 pcalibre pcalibre2">http://jquery.com/</a></p>
+<p class="calibre9">jQuery开源主页：<a target="_blank" href="https://github.com/jquery/jquery" class="calibre4 pcalibre1 pcalibre pcalibre2">https://github.com/jquery/jquery</a></p>
+<p class="calibre9">可以在自己WebGL代码页面的最顶端加上一行</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">src</span>=<span class="hljs-value">"jquery.min.js"</span> <span class="hljs-tag">type</span>=<span class="hljs-value">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+<p class="calibre9">当然src=要加上能找到jquery.min.js文件的相对路径。.js前面有个min的 意思是被压缩过的js，功能和不加min的一样，但文件更小加快网页打开速度。如果需要调试时候查看源码，就用不带min的版本。</p>
+<p class="calibre9">也可以用CDN：</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">src</span>=<span class="hljs-value">"http://code.jquery.com/jquery-2.1.4.min.js"</span> 
+<span class="hljs-tag">type</span>=<span class="hljs-value">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+<p class="calibre9">用CDN的前提是查看网页的这台电脑要联网。</p>
+<h4 id="gl-matrix" class="calibre15">gl-matrix</h4>
+<p class="calibre9">做GL会涉及很多图形变换，在计算机中对坐标的变换是通过矩阵来实现的，比如可以去了解一下仿射变换。WebGL并没有集成矩阵的运算，我们专注WebGL的学习，没有必要一开始花费太多精力去写矩阵操作，轮子造好了，请享用。</p>
+<p class="calibre9">gl-matrix开源主页：<a target="_blank" href="https://github.com/toji/gl-matrix" class="calibre4 pcalibre1 pcalibre pcalibre2">https://github.com/toji/gl-matrix</a></p>
+<p class="calibre9">仓库的dist文件夹下有gl-matrix-min.js和gl-matrix.js两个文件。同样在页面顶端加入</p>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">src</span>=<span class="hljs-value">"gl-matrix-min.js"</span> <span class="hljs-tag">type</span>=<span class="hljs-value">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+<p class="calibre9">好，我们开始吧 <img alt="" src="lovelysmile.png" class="calibre16"/></p>
+
+        
+        </div>
+    
+</div>
+
+        
+        
+    
+    
+
+</body></html>

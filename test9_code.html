@@ -1,0 +1,449 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-tw" xml:lang="zh-tw">
+  <head>
+    <title>优化代码结构，多物体运动 | CSGrandeur的WebGL学习笔记</title>
+    <meta content="" name="description"/>
+    <meta content="GitBook 2.4.3" name="generator"/>
+    <meta content="CSGrandeur" name="author"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+        
+        
+<div class="page">
+    <h1 class="book-chapter" id="calibre_toc_28">优化代码结构，多物体运动</h1>
+    
+        <div id="section-" class="normal">
+        
+            <h1 id="%E4%BC%98%E5%8C%96%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%EF%BC%8C%E5%A4%9A%E7%89%A9%E4%BD%93%E8%BF%90%E5%8A%A8" class="calibre1">优化代码结构，多物体运动</h1>
+<pre class="calibre11"><code class="calibre12 pcalibre4 pcalibre3"><span class="hljs-tag">&lt;<span class="hljs-title">div</span> <span class="hljs-tag">class</span>=<span class="hljs-value">"page-header"</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-title">h3</span>&gt;</span>9、优化代码结构，多物体运动<span class="hljs-tag">&lt;/<span class="hljs-title">h3</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-title">div</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-title">canvas</span> <span class="hljs-tag">id</span> = "<span class="hljs-tag">test09-canvas</span>" <span class="hljs-tag">width</span> = "<span class="hljs-tag">800</span>" <span class="hljs-tag">height</span> = "<span class="hljs-tag">600</span>"&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-title">canvas</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-title">br</span>/&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">input</span> <span class="hljs-tag">type</span>=<span class="hljs-value">"checkbox"</span> <span class="hljs-tag">id</span>=<span class="hljs-value">"twinkle"</span> /&gt;</span> 发亮
+<span class="hljs-tag">&lt;<span class="hljs-title">br</span>/&gt;</span>
+(逗号/句号 控制 靠近/远离，W/S 控制旋转)
+
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">id</span> = "<span class="hljs-tag">shader-vs</span>" <span class="hljs-tag">type</span> = "<span class="hljs-tag">x-shader</span>/<span class="hljs-tag">x-vertex</span>"&gt;</span><span class="undefined">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    varying vec2 vTextureCoord;
+
+    <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">void</span>)
+    {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, <span class="hljs-built_in">1.0</span>);
+        vTextureCoord = aTextureCoord;
+    }
+</span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">id</span> = "<span class="hljs-tag">shader-fs</span>" <span class="hljs-tag">type</span> = "<span class="hljs-tag">x-shader</span>/<span class="hljs-tag">x-fragment</span>"&gt;</span><span class="undefined">
+    precision mediump float;
+    varying vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
+
+    uniform vec3 uColor;
+
+    <span class="hljs-keyword">void</span> main(<span class="hljs-keyword">void</span>)
+    {
+        vec4 textureColor = 
+            texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+        gl_FragColor = 
+            textureColor * vec4(uColor, <span class="hljs-built_in">1.0</span>);
+    }
+</span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">type</span>=<span class="hljs-value">"text/javascript"</span>&gt;</span><span class="undefined">
+    requestAnimFrame = <span class="hljs-built_in">window</span>.requestAnimationFrame || 
+        <span class="hljs-built_in">window</span>.mozRequestAnimationFrame || 
+        <span class="hljs-built_in">window</span>.webkitRequestAnimationFrame || 
+        <span class="hljs-built_in">window</span>.msRequestAnimationFrame || 
+        <span class="hljs-built_in">window</span>.oRequestAnimationFrame || 
+        <span class="hljs-keyword"><span class="hljs-keyword">function</span>(<span class="hljs-built_in">callback</span>) </span>{ setTimeout(callback, <span class="hljs-built_in">1000</span> / <span class="hljs-built_in">60</span>); }; 
+</span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-tag">type</span>=<span class="hljs-value">"text/javascript"</span>&gt;</span><span class="undefined">
+
+$(<span class="hljs-built_in">document</span>).ready(<span class="hljs-keyword"><span class="hljs-keyword">function</span> (<span class="hljs-built_in"></span>)
+</span>{
+    webGLStart();
+});
+
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">webGLStart</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">var</span> canvas = $(<span class="hljs-value">"#test09-canvas"</span>)[<span class="hljs-built_in">0</span>];
+    initGL(canvas);
+    initShaders();
+    initBuffers();
+    initTexture();
+
+    initWorldObjects();
+
+    gl.clearColor(<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>);
+
+    $(<span class="hljs-built_in">document</span>).keydown(handleKeyDown);
+    $(<span class="hljs-built_in">document</span>).keyup(handleKeyUp);
+}
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">tick</span>(<span class="hljs-built_in"></span>)
+</span>{
+    requestAnimFrame(tick);
+    handleKeys();
+    drawScene();
+    animate();
+}
+
+<span class="hljs-keyword">var</span> gl;
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">initGL</span>(<span class="hljs-built_in">canvas</span>)
+</span>{
+    <span class="hljs-keyword">try</span>
+    {
+        gl = canvas.getContext(<span class="hljs-value">"webgl"</span>) || canvas.getContext(<span class="hljs-value">"experimental-webgl"</span>);
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+    }<span class="hljs-keyword">catch</span>(e){}
+    <span class="hljs-keyword">if</span>(!gl)
+    {
+        alert(<span class="hljs-value">"无法初始化“WebGL”。"</span>);
+    }
+}
+
+<span class="hljs-keyword">var</span> starTexture;
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">initTexture</span>(<span class="hljs-built_in"></span>)
+</span>{
+    starTexture = gl.createTexture();
+    starTexture.image = <span class="hljs-keyword">new</span> Image();
+    starTexture.image.onload = <span class="hljs-keyword"><span class="hljs-keyword">function</span>(<span class="hljs-built_in"></span>)
+    </span>{
+        handleLoadedTexture(starTexture);
+        tick();
+    }
+    starTexture.image.src = <span class="hljs-value">"/Public/image/star.gif"</span>;
+}
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">handleLoadedTexture</span>(<span class="hljs-built_in">texture</span>)
+</span>{
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, <span class="hljs-built_in">1</span>);
+
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, <span class="hljs-built_in">0</span>, gl.RGBA, gl.RGBA, 
+        gl.UNSIGNED_BYTE, texture.image);
+    gl.texParameteri(gl.TEXTURE_2D, 
+        gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, 
+        gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+    gl.bindTexture(gl.TEXTURE_2D, <span class="hljs-built_in">null</span>);
+}
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">getShader</span>(<span class="hljs-built_in">gl, id</span>)
+</span>{
+    <span class="hljs-keyword">var</span> shaderScript = $(<span class="hljs-value">"#"</span> + id);
+    <span class="hljs-keyword">if</span>(!shaderScript.length)
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">null</span>;
+    }
+    <span class="hljs-keyword">var</span> str = shaderScript.text();
+
+    <span class="hljs-keyword">var</span> shader;
+    <span class="hljs-keyword">if</span>(shaderScript[<span class="hljs-built_in">0</span>].type == <span class="hljs-value">"x-shader/x-fragment"</span>)
+    {
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
+    }
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(shaderScript[<span class="hljs-built_in">0</span>].type == <span class="hljs-value">"x-shader/x-vertex"</span>)
+    {
+        shader = gl.createShader(gl.VERTEX_SHADER);
+    }
+    <span class="hljs-keyword">else</span>
+    {
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">null</span>;
+    }
+    gl.shaderSource(shader, str);
+    gl.compileShader(shader);
+    <span class="hljs-keyword">if</span>(!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+    {
+        alert(gl.getShaderInfoLog(shader));
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">null</span>;
+    }
+    <span class="hljs-keyword">return</span> shader;
+}
+
+<span class="hljs-keyword">var</span> shaderProgram;
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">initShaders</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">var</span> fragmentShader = getShader(gl, <span class="hljs-value">"shader-fs"</span>);
+    <span class="hljs-keyword">var</span> vertexShader = getShader(gl, <span class="hljs-value">"shader-vs"</span>);
+
+    shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    <span class="hljs-keyword">if</span>(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS))
+    {
+        alert(<span class="hljs-value">"无法初始化“Shader”。"</span>);
+    }
+    gl.useProgram(shaderProgram);
+
+    shaderProgram.vertexPositionAttribute = 
+        gl.getAttribLocation(shaderProgram, <span class="hljs-value">"aVertexPosition"</span>);
+    gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+    shaderProgram.textureCoordAttribute = 
+        gl.getAttribLocation(shaderProgram, <span class="hljs-value">"aTextureCoord"</span>);
+    gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+
+    shaderProgram.pMatrixUniform = 
+        gl.getUniformLocation(shaderProgram, <span class="hljs-value">"uPMatrix"</span>);
+    shaderProgram.mvMatrixUniform = 
+        gl.getUniformLocation(shaderProgram, <span class="hljs-value">"uMVMatrix"</span>);
+    shaderProgram.samplerUniform = 
+        gl.getUniformLocation(shaderProgram, <span class="hljs-value">"uSampler"</span>);
+    shaderProgram.colorUniform = 
+        gl.getUniformLocation(shaderProgram, <span class="hljs-value">"uColor"</span>);
+
+}
+
+
+<span class="hljs-keyword">var</span> mvMatrix = mat4.create();
+
+<span class="hljs-keyword">var</span> mvMatrixStack = [];
+
+<span class="hljs-keyword">var</span> pMatrix = mat4.create();
+
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">mvPushMatrix</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">var</span> copy = mat4.clone(mvMatrix);
+    mvMatrixStack.push(copy);
+}
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">mvPopMatrix</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">if</span>(mvMatrixStack.length == <span class="hljs-built_in">0</span>)
+    {
+        <span class="hljs-keyword">throw</span> <span class="hljs-value">"不合法的矩阵出栈操作!"</span>;
+    }
+    mvMatrix = mvMatrixStack.pop();
+}
+
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">setMatrixUniforms</span>(<span class="hljs-built_in"></span>)
+</span>{
+    gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, <span class="hljs-built_in">false</span>, pMatrix);
+    gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, <span class="hljs-built_in">false</span>, mvMatrix);
+}
+
+
+<span class="hljs-keyword">var</span> starVertexPositionBuffer;
+<span class="hljs-keyword">var</span> starVertexTextureCoordBuffer;
+
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">initBuffers</span>(<span class="hljs-built_in"></span>)
+</span>{
+    starVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, starVertexPositionBuffer);
+    vertices = [
+        -<span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">0.0</span>,
+         <span class="hljs-built_in">1.0</span>, -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">0.0</span>,
+        -<span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">0.0</span>,
+         <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">1.0</span>,  <span class="hljs-built_in">0.0</span>
+        ];
+    gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(vertices), 
+        gl.STATIC_DRAW);
+    starVertexPositionBuffer.itemSize = <span class="hljs-built_in">3</span>;
+    starVertexPositionBuffer.numItems = <span class="hljs-built_in">4</span>;
+
+    starVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, starVertexTextureCoordBuffer);
+    <span class="hljs-keyword">var</span> textureCoords = [
+        <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>,
+        <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>,
+        <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>,
+        <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">1.0</span>
+        ];
+    gl.bufferData(gl.ARRAY_BUFFER, <span class="hljs-keyword">new</span> <span class="hljs-built_in">Float32Array</span>(textureCoords), 
+        gl.STATIC_DRAW);
+    starVertexTextureCoordBuffer.itemSize = <span class="hljs-built_in">2</span>;
+    starVertexTextureCoordBuffer.numItems = <span class="hljs-built_in">4</span>;
+}
+
+
+<span class="hljs-keyword">var</span> currentlyPressedKeys = {};
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">handleKeyDown</span>(<span class="hljs-built_in">event</span>)
+</span>{
+    currentlyPressedKeys[event.keyCode] = <span class="hljs-built_in">true</span>;
+}
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">handleKeyUp</span>(<span class="hljs-built_in">event</span>)
+</span>{
+    currentlyPressedKeys[event.keyCode] = <span class="hljs-built_in">false</span>;
+}
+
+<span class="hljs-keyword">var</span> zoom  = -<span class="hljs-built_in">15</span>;
+<span class="hljs-keyword">var</span> tilt = <span class="hljs-built_in">90</span>;
+<span class="hljs-keyword">var</span> spin = <span class="hljs-built_in">90</span>;
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">handleKeys</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">if</span>(currentlyPressedKeys[<span class="hljs-built_in">190</span>])
+    {
+        <span class="hljs-title">//"."/"&gt;"句号键</span>
+        zoom -= <span class="hljs-built_in">0.1</span>;
+    }
+    <span class="hljs-keyword">if</span>(currentlyPressedKeys[<span class="hljs-built_in">188</span>])
+    {
+        <span class="hljs-title">//","/"&lt;"逗号键</span>
+        zoom += <span class="hljs-built_in">0.1</span>;
+    }
+    <span class="hljs-keyword">if</span>(currentlyPressedKeys[<span class="hljs-built_in">87</span>])
+    {
+        <span class="hljs-title">//W</span>
+        tilt += <span class="hljs-built_in">2</span>;
+    }
+    <span class="hljs-keyword">if</span>(currentlyPressedKeys[<span class="hljs-built_in">83</span>])
+    {
+        <span class="hljs-title">//S</span>
+        tilt -= <span class="hljs-built_in">2</span>;
+    }    
+}
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">drawScene</span>(<span class="hljs-built_in"></span>)
+</span>{
+    gl.viewport(<span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>, gl.viewportWidth, gl.viewportHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    mat4.perspective(pMatrix, <span class="hljs-built_in">45</span>, 
+        gl.viewportWidth / gl.viewportHeight, <span class="hljs-built_in">0.1</span>, <span class="hljs-built_in">100.0</span>);
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.enable(gl.BLEND);
+
+    mat4.identity(mvMatrix);
+
+    mat4.translate(mvMatrix, mvMatrix, [<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, zoom]);
+
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(tilt), [<span class="hljs-built_in">1</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>]);
+
+    <span class="hljs-keyword">var</span> twinkle = $(<span class="hljs-value">"#twinkle"</span>).is(<span class="hljs-value">":checked"</span>);
+    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> stars)
+    {
+        stars[i].draw(tilt, spin, twinkle);
+        spin += <span class="hljs-built_in">0.1</span>;
+    }
+}
+<span class="hljs-keyword">var</span> stars = [];
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">initWorldObjects</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">var</span> numStars = <span class="hljs-built_in">50</span>;
+    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i = <span class="hljs-built_in">0</span>; i &lt; numStars; i ++)
+    {
+        stars.push(<span class="hljs-keyword">new</span> Star((i / numStars) * <span class="hljs-built_in">5.0</span>, i / numStars));
+    }
+}
+<span class="hljs-title">//==========</span>
+<span class="hljs-title">//Star类</span>
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">Star</span>(<span class="hljs-built_in">startingDistance, rotationSpeed</span>)
+</span>{
+    <span class="hljs-keyword">this</span>.angle = <span class="hljs-built_in">0</span>;
+    <span class="hljs-keyword">this</span>.dist = startingDistance;
+    <span class="hljs-keyword">this</span>.rotationSpeed = rotationSpeed;
+    <span class="hljs-title">//设置一个起始颜色</span>
+    <span class="hljs-keyword">this</span>.randomiseColors();
+}
+Star.prototype.draw = <span class="hljs-keyword"><span class="hljs-keyword">function</span>(<span class="hljs-built_in">tilt, spin, twinkle</span>)
+</span>{
+    mvPushMatrix();
+    <span class="hljs-title">//移动到位</span>
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(<span class="hljs-keyword">this</span>.angle), [<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>]);
+    mat4.translate(mvMatrix, mvMatrix, [<span class="hljs-keyword">this</span>.dist, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>]);
+    <span class="hljs-title">//旋转</span>
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(-<span class="hljs-keyword">this</span>.angle), [<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>]);
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(-tilt), [<span class="hljs-built_in">1.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>]);
+    <span class="hljs-keyword">if</span>(twinkle)
+    {
+        <span class="hljs-title">//画一个不旋转的star</span>
+        gl.uniform3f(shaderProgram.colorUniform, 
+            <span class="hljs-keyword">this</span>.twinkleR, <span class="hljs-keyword">this</span>.twinkleG, <span class="hljs-keyword">this</span>.twinkleB);
+        drawStar();
+    }
+    <span class="hljs-title">//所有Star围绕Z旋转</span>
+    mat4.rotate(mvMatrix, mvMatrix, degToRad(spin), [<span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">0.0</span>, <span class="hljs-built_in">1.0</span>]);
+    <span class="hljs-title">//画颜色</span>
+    gl.uniform3f(shaderProgram.colorUniform, <span class="hljs-keyword">this</span>.r, <span class="hljs-keyword">this</span>.g, <span class="hljs-keyword">this</span>.b);
+    drawStar();
+    mvPopMatrix();
+};
+
+<span class="hljs-keyword">var</span> effectiveFPMS = <span class="hljs-built_in">60</span> / <span class="hljs-built_in">1000</span>;
+Star.prototype.animate = <span class="hljs-keyword"><span class="hljs-keyword">function</span>(<span class="hljs-built_in">elapsedTime</span>)
+</span>{
+    <span class="hljs-keyword">this</span>.angle += <span class="hljs-keyword">this</span>.rotationSpeed * effectiveFPMS * elapsedTime;
+    <span class="hljs-title">//逐步减小与中心的距离</span>
+    <span class="hljs-keyword">this</span>.dist -= <span class="hljs-built_in">0.01</span> * effectiveFPMS * elapsedTime;
+    <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.dist &lt; <span class="hljs-built_in">0.0</span>)
+    {
+        <span class="hljs-keyword">this</span>.dist += <span class="hljs-built_in">5.0</span>;
+        <span class="hljs-keyword">this</span>.randomiseColors();
+    }
+};
+
+Star.prototype.randomiseColors = <span class="hljs-keyword"><span class="hljs-keyword">function</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-title">//给星星一个随机的颜色</span>
+    <span class="hljs-keyword">this</span>.r = <span class="hljs-built_in">Math</span>.random();
+    <span class="hljs-keyword">this</span>.g = <span class="hljs-built_in">Math</span>.random();
+    <span class="hljs-keyword">this</span>.b = <span class="hljs-built_in">Math</span>.random();
+    <span class="hljs-title">//如果打开了发亮开关，则多绘制一次，用另一个随机的颜色作为亮光</span>
+    <span class="hljs-keyword">this</span>.twinkleR = <span class="hljs-built_in">Math</span>.random();
+    <span class="hljs-keyword">this</span>.twinkleG = <span class="hljs-built_in">Math</span>.random();
+    <span class="hljs-keyword">this</span>.twinkleB = <span class="hljs-built_in">Math</span>.random();
+};
+<span class="hljs-title">//==========</span>
+
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">drawStar</span>(<span class="hljs-built_in"></span>)
+</span>{
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, starTexture);
+    gl.uniform1i(shaderProgram.samplerUniform, <span class="hljs-built_in">0</span>);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, starVertexTextureCoordBuffer);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 
+        starVertexTextureCoordBuffer.itemSize, gl.FLOAT, <span class="hljs-built_in">false</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, starVertexPositionBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 
+        starVertexPositionBuffer.itemSize, gl.FLOAT, <span class="hljs-built_in">false</span>, <span class="hljs-built_in">0</span>, <span class="hljs-built_in">0</span>);
+
+    setMatrixUniforms();
+    gl.drawArrays(gl.TRIANGLE_STRIP, <span class="hljs-built_in">0</span>, starVertexPositionBuffer.numItems);
+}
+
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">degToRad</span>(<span class="hljs-built_in">degrees</span>)
+</span>{
+    <span class="hljs-keyword">return</span> degrees * <span class="hljs-built_in">Math</span>.PI / <span class="hljs-built_in">180</span>;
+}
+<span class="hljs-keyword">var</span> lastTime = <span class="hljs-built_in">0</span>;
+<span class="hljs-keyword"><span class="hljs-keyword">function</span> <span class="hljs-function">animate</span>(<span class="hljs-built_in"></span>)
+</span>{
+    <span class="hljs-keyword">var</span> timeNow = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime();
+    <span class="hljs-keyword">if</span>(lastTime != <span class="hljs-built_in">0</span>)
+    {
+        <span class="hljs-keyword">var</span> elapsed = timeNow - lastTime;
+
+        <span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i <span class="hljs-keyword">in</span> stars)
+        {
+            stars[i].animate(elapsed);
+        }
+    }
+    lastTime = timeNow;
+}
+</span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+</code></pre>
+
+        
+        </div>
+    
+</div>
+
+        
+        
+    
+    
+
+</body></html>

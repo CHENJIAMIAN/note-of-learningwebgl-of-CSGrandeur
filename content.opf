@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='utf-8'?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="uuid_id" version="2.0">
+  <metadata xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:calibre="http://calibre.kovidgoyal.net/2009/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <meta name="cover" content="cover"/>
+    <dc:creator opf:file-as="Unknown" opf:role="aut">CSGrandeur</dc:creator>
+    <meta name="calibre:timestamp" content="2015-10-21T08:52:46.258086+00:00"/>
+    <dc:contributor opf:role="bkp">GitBook</dc:contributor>
+    <dc:publisher>GitBook</dc:publisher>
+    <dc:identifier id="uuid_id" opf:scheme="uuid">0cd15b46-b7f0-4607-8fe7-2b62ad526126</dc:identifier>
+    <dc:language>zh</dc:language>
+    <dc:title>CSGrandeur的WebGL学习笔记</dc:title>
+    <dc:description>这本书是我学习WebGL过程的记录，根据学习的经验写成教程的形式。&#13;
+&#13;
+第一章是“Learning WebGL”的内容，后面也许会加一些学习过程中的新东西。</dc:description>
+  </metadata>
+  <manifest>
+    <item href="cover.jpg" id="cover" media-type="image/jpeg"/>
+    <item href="1_001.png" id="added3" media-type="image/png"/>
+    <item href="1_002.png" id="added4" media-type="image/png"/>
+    <item href="1_003.gif" id="added5" media-type="image/gif"/>
+    <item href="1_004.gif" id="added6" media-type="image/gif"/>
+    <item href="1_005.gif" id="added7" media-type="image/gif"/>
+    <item href="1_006.gif" id="added8" media-type="image/gif"/>
+    <item href="1_007.png" id="added9" media-type="image/png"/>
+    <item href="1_008.gif" id="added10" media-type="image/gif"/>
+    <item href="1_009.gif" id="added11" media-type="image/gif"/>
+    <item href="1_010.gif" id="added12" media-type="image/gif"/>
+    <item href="1_011.gif" id="added13" media-type="image/gif"/>
+    <item href="1_012.gif" id="added14" media-type="image/gif"/>
+    <item href="1_013.png" id="added15" media-type="image/png"/>
+    <item href="1_014.png" id="added16" media-type="image/png"/>
+    <item href="1_015.gif" id="added17" media-type="image/gif"/>
+    <item href="1_016.gif" id="added18" media-type="image/gif"/>
+    <item href="1_017.png" id="added19" media-type="image/png"/>
+    <item href="1_018.jpg" id="added20" media-type="image/jpeg"/>
+    <item href="1_019.gif" id="added21" media-type="image/gif"/>
+    <item href="1_020.gif" id="added22" media-type="image/gif"/>
+    <item href="1_021.gif" id="added23" media-type="image/gif"/>
+    <item href="1_022.gif" id="added24" media-type="image/gif"/>
+    <item href="SUMMARY.html" id="html" media-type="application/xhtml+xml"/>
+    <item href="index.html" id="html1" media-type="application/xhtml+xml"/>
+    <item href="index1.html" id="html2" media-type="application/xhtml+xml"/>
+    <item href="index2.html" id="html19" media-type="application/xhtml+xml"/>
+    <item href="lovelysmile.png" id="added2" media-type="image/png"/>
+    <item href="page_styles.css" id="page_css" media-type="text/css"/>
+    <item href="stylesheet.css" id="css" media-type="text/css"/>
+    <item href="test1.html" id="html3" media-type="application/xhtml+xml"/>
+    <item href="test10.html" id="html12" media-type="application/xhtml+xml"/>
+    <item href="test10_code.html" id="html29" media-type="application/xhtml+xml"/>
+    <item href="test11.html" id="html13" media-type="application/xhtml+xml"/>
+    <item href="test11_code.html" id="html30" media-type="application/xhtml+xml"/>
+    <item href="test12.html" id="html14" media-type="application/xhtml+xml"/>
+    <item href="test12_code.html" id="html31" media-type="application/xhtml+xml"/>
+    <item href="test13.html" id="html15" media-type="application/xhtml+xml"/>
+    <item href="test13_code.html" id="html32" media-type="application/xhtml+xml"/>
+    <item href="test14.html" id="html16" media-type="application/xhtml+xml"/>
+    <item href="test14_code.html" id="html33" media-type="application/xhtml+xml"/>
+    <item href="test15.html" id="html17" media-type="application/xhtml+xml"/>
+    <item href="test15_code.html" id="html34" media-type="application/xhtml+xml"/>
+    <item href="test16.html" id="html18" media-type="application/xhtml+xml"/>
+    <item href="test16_code.html" id="html35" media-type="application/xhtml+xml"/>
+    <item href="test1_code.html" id="html20" media-type="application/xhtml+xml"/>
+    <item href="test2.html" id="html4" media-type="application/xhtml+xml"/>
+    <item href="test2_code.html" id="html21" media-type="application/xhtml+xml"/>
+    <item href="test3.html" id="html5" media-type="application/xhtml+xml"/>
+    <item href="test3_code.html" id="html22" media-type="application/xhtml+xml"/>
+    <item href="test4.html" id="html6" media-type="application/xhtml+xml"/>
+    <item href="test4_code.html" id="html23" media-type="application/xhtml+xml"/>
+    <item href="test5.html" id="html7" media-type="application/xhtml+xml"/>
+    <item href="test5_code.html" id="html24" media-type="application/xhtml+xml"/>
+    <item href="test6.html" id="html8" media-type="application/xhtml+xml"/>
+    <item href="test6_code.html" id="html25" media-type="application/xhtml+xml"/>
+    <item href="test7.html" id="html9" media-type="application/xhtml+xml"/>
+    <item href="test7_code.html" id="html26" media-type="application/xhtml+xml"/>
+    <item href="test8.html" id="html10" media-type="application/xhtml+xml"/>
+    <item href="test8_code.html" id="html27" media-type="application/xhtml+xml"/>
+    <item href="test9.html" id="html11" media-type="application/xhtml+xml"/>
+    <item href="test9_code.html" id="html28" media-type="application/xhtml+xml"/>
+    <item href="titlepage.xhtml" id="titlepage" media-type="application/xhtml+xml"/>
+    <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="titlepage"/>
+    <itemref idref="html"/>
+    <itemref idref="html1"/>
+    <itemref idref="html2"/>
+    <itemref idref="html3"/>
+    <itemref idref="html4"/>
+    <itemref idref="html5"/>
+    <itemref idref="html6"/>
+    <itemref idref="html7"/>
+    <itemref idref="html8"/>
+    <itemref idref="html9"/>
+    <itemref idref="html10"/>
+    <itemref idref="html11"/>
+    <itemref idref="html12"/>
+    <itemref idref="html13"/>
+    <itemref idref="html14"/>
+    <itemref idref="html15"/>
+    <itemref idref="html16"/>
+    <itemref idref="html17"/>
+    <itemref idref="html18"/>
+    <itemref idref="html19"/>
+    <itemref idref="html20"/>
+    <itemref idref="html21"/>
+    <itemref idref="html22"/>
+    <itemref idref="html23"/>
+    <itemref idref="html24"/>
+    <itemref idref="html25"/>
+    <itemref idref="html26"/>
+    <itemref idref="html27"/>
+    <itemref idref="html28"/>
+    <itemref idref="html29"/>
+    <itemref idref="html30"/>
+    <itemref idref="html31"/>
+    <itemref idref="html32"/>
+    <itemref idref="html33"/>
+    <itemref idref="html34"/>
+    <itemref idref="html35"/>
+  </spine>
+  <guide>
+    <reference href="titlepage.xhtml" title="Cover" type="cover"/>
+  </guide>
+</package>
